@@ -91,79 +91,89 @@ function sortData(data, columnIndex, ascending) {
 
 // Функция для получения значения по индексу столбца
 function getValueByColumnIndex(item, index) {
-    switch (index) {
-        case 0: return parseInt(item.item_id); // Преобразуем в число
-        case 1: return item.icon; // Для иконок сортировка не имеет смысла
-        case 2: return item.item_name_en;
-        case 3: return item.item_name_ru;
-        case 4: return item.item_type.name;
-        case 5: return item.item_category.name;
-        case 6: return parseFloat(item.item_cost_gold); // Преобразуем в число для корректной сортировки
-        case 7: return parseInt(item.item_min_lvl); // Преобразуем в число для корректной сортировки
+    const key = headerOrder[index]; // Получаем ключ из headerOrder
+    switch (key) {
+        case 'item_id': return parseInt(item.item_id); // Преобразуем в число
+        case 'icon': return item.icon; // Для иконок сортировка не имеет смысла
+        case 'item_type': return item.item_type.name; // Получаем имя типа
+        case 'item_category': return item.item_category.name; // Получаем имя категории
+        case 'item_min_lvl': return parseInt(item.item_min_lvl); // Преобразуем в число для корректной сортировки
+        case 'item_visible': 
+            return item.item_visible && item.item_visible.name ? item.item_visible.name : ''; // Сортируем по имени
+        case 'item_theme': 
+            return item.item_theme ? item.item_theme.toString() : ''; // Преобразуем в строку для сортировки
+        case 'item_cost_gold': return parseFloat(item.item_cost_gold); // Преобразуем в число для корректной сортировки
+        case 'item_buy_amount': return parseInt(item.item_buy_amount); // Преобразуем в число для корректной сортировки
+        case 'item_name_ru': return item.item_name_ru; // Название на русском
+        case 'item_name_en': return item.item_name_en; // Название на английском
+        case 'upgrades': return item.upgrades.map(upgrade => upgrade.name).join(', '); // Сортируем по именам улучшений
         default: return '';
     }
 }
 
 // Функция для рендеринга таблицы
+const headerOrder = [
+    'item_id',
+    'icon',
+    'item_type',
+    'item_category',
+    'item_min_lvl',
+    'item_visible',
+    'item_theme',
+    'item_cost_gold',
+    'item_buy_amount',
+    'item_name_ru',
+    'item_name_en',
+    'upgrades'
+];
+
 function renderTable(data) {
     const tableBody = document.getElementById('data-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = ''; // Очищаем таблицу перед рендерингом
 
+    // Создаем строки таблицы
     data.forEach(item => {
         const row = tableBody.insertRow();
-        row.insertCell(0).innerText = item.item_id;
-        row.insertCell(1).innerHTML = `<img src="${item.icon}" alt="Icon" width="50">`;
-        row.insertCell(2).innerText = item.item_name_en;
-        row.insertCell(3).innerText = item.item_name_ru;
-        row.insertCell(4).innerText = item.item_type.name;
-        row.insertCell(5).innerText = item.item_category.name;
-        row.insertCell(6).innerText = item.item_cost_gold;
-        row.insertCell(7).innerText = item.item_min_lvl;
-    });
-}
-// Функция для рендеринга таблицы
-function renderTable(data) {
-    const tableBody = document.getElementById('data-table').getElementsByTagName('tbody')[0];
-    tableBody.innerHTML = ''; // Очищаем таблицу перед рендерингом
-
-    data.forEach(item => {
-        const row = tableBody.insertRow();
-        row.insertCell(0).innerText = item.item_id;
-
-        // Создаем элемент изображения
-        const imgCell = row.insertCell(1);
-        const imgElement = document.createElement('img');
-        imgElement.src = item.icon;
-        imgElement.alt = "Icon";
-        imgElement.width = 50;
-
-        // Добавляем обработчики событий для увеличения изображения
-        imgElement.addEventListener('mouseover', () => {
-            const previewImg = document.getElementById('preview-img');
-            const imagePreview = document.getElementById('image-preview');
-            previewImg.src = item.icon; // Устанавливаем источник увеличенного изображения
-            imagePreview.style.display = 'block'; // Показываем увеличенное изображение
+        headerOrder.forEach(key => {
+            const cell = row.insertCell();
+            // Проверяем, является ли значение изображением
+            if (key === 'icon') {
+                cell.innerHTML = `<img src="${item[key]}" alt="Icon" width="50" style="cursor: pointer;" onclick="openImage('${item[key]}')">`;
+            } else if (key === 'upgrades' && Array.isArray(item[key])) {
+                // Если это массив (например, upgrades), отображаем его как строку
+                cell.innerText = item[key].map(upgrade => upgrade.name).join(', '); // Отображаем только имена
+            } else if (typeof item[key] === 'object' && item[key] !== null) {
+                // Если это объект, проверяем наличие поля name
+                cell.innerText = item[key].name ? item[key].name : JSON.stringify(item[key]); // Отображаем только имя, если оно есть
+            } else {
+                cell.innerText = item[key]; // Устанавливаем текст ячейки
+            }
         });
-
-        imgElement.addEventListener('mousemove', (e) => {
-            const imagePreview = document.getElementById('image-preview');
-            imagePreview.style.top = `${e.clientY + 10}px`; // Позиционируем увеличенное изображение
-            imagePreview.style.left = `${e.clientX + 10}px`;
-        });
-
-        imgElement.addEventListener('mouseout', () => {
-            const imagePreview = document.getElementById('image-preview');
-            imagePreview.style.display = 'none'; // Скрываем увеличенное изображение
-        });
-
-        imgCell.appendChild(imgElement);
-        row.insertCell(2).innerText = item.item_name_en;
-        row.insertCell(3).innerText = item.item_name_ru;
-        row.insertCell(4).innerText = item.item_type.name;
-        row.insertCell(5).innerText = item.item_category.name;
-        row.insertCell(6).innerText = item.item_cost_gold;
-        row.insertCell(7).innerText = item.item_min_lvl;
     });
 }
 // Загружаем данные при загрузке страницы
 window.onload = loadData;
+
+
+function openImage(src) {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    modalImage.src = src; // Устанавливаем источник изображения
+    modal.style.display = 'flex'; // Показываем модальное окно
+}
+
+// Функция для закрытия модального окна
+function closeModal() {
+    const modal = document.getElementById('image-modal');
+    modal.style.display = 'none'; // Скрываем модальное окно
+}
+
+// Добавляем обработчик события для закрытия модального окна
+document.getElementById('close-modal').onclick = closeModal;
+
+// Закрытие модального окна при клике вне изображения
+document.getElementById('image-modal').onclick = function(event) {
+    if (event.target === this) {
+        closeModal();
+    }
+};

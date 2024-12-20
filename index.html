@@ -57,23 +57,29 @@
     <table id="data-table">
         <thead>
             <tr>
-                <th>Item ID</th>
-                <th>Icon</th>
-                <th>Item Name (EN)</th>
-                <th>Item Name (RU)</th>
-                <th>Item Type</th>
-                <th>Item Category</th>
-                <th>Item Cost (Gold)</th>
-                <th>Item Min Level</th>
+                <th>id</th>
+                <th>Иконка</th>
+                <th>Тип</th>
+                <th>Категория</th>
+                <th>Мин.уровень</th>
+                <th>Видимость</th>
+                <th>Тема</th>
+                <th>Цена(Золото)</th>
+                <th>кол.при покупке</th>
+                <th>назв. на рус</th>
+                <th>назв. на анг</th>
+                <th>мастерская</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Данные будут добавлены сюда -->
+            <!-- Данные будут добавлены здесь -->
         </tbody>
     </table>
 
-    <div id="image-preview" class="image-preview" style="display: none;">
-        <img id="preview-img" src="" alt="Preview" />
+    <!-- Модальное окно для увеличенного изображения -->
+    <div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(15px);">
+        <img id="modal-image" src="" alt="Large Image" style="max-width: 90%; max-height: 90%;">
+        <span id="close-modal" style="color: white; position: absolute; top: 20px; right: 30px; font-size: 30px; cursor: pointer;">&times;</span>
     </div>
 
     <script src="script.js"></script>
