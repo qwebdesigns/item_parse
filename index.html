@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вывод данных из JSON</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        th {
+            position: relative; /* Для позиционирования резизера */
+        }
+
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 5px; /* Ширина резизера */
+            cursor: col-resize; /* Курсор при наведении */
+            z-index: 1; /* Чтобы резизер был выше других элементов */
+        }
+        .error {
+            color: red;
+        }
+        .image-preview {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            border: 2px solid #ddd;
+            background-color: white;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .image-preview img {
+            max-width: 300px; /* Максимальная ширина увеличенного изображения */
+            max-height: 300px; /* Максимальная высота увеличенного изображения */
+        }
+    </style>
+</head>
+<body>
+    <h1>Данные из handler.json</h1>
+    <div id="error-message" class="error"></div>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Item ID</th>
+                <th>Icon</th>
+                <th>Item Name (EN)</th>
+                <th>Item Name (RU)</th>
+                <th>Item Type</th>
+                <th>Item Category</th>
+                <th>Item Cost (Gold)</th>
+                <th>Item Min Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены сюда -->
+        </tbody>
+    </table>
+
+    <div id="image-preview" class="image-preview" style="display: none;">
+        <img id="preview-img" src="" alt="Preview" />
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
