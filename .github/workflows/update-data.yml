@@ -1,0 +1,45 @@
+name: Обновление данных из API
+
+# API blockade3d.com отдаёт JSON только своим доменам (CORS), поэтому страница
+# на GitHub Pages не может запросить его из браузера. Этот workflow забирает
+# данные со стороны GitHub и коммитит снимок в handler.json — страница читает
+# его как обычный файл, а кнопка «Загрузить из API» подхватывает обновления.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # каждые 30 минут (GitHub может задержать запуск)
+  workflow_dispatch: # можно запустить вручную на вкладке Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Клонировать репозиторий
+        uses: actions/checkout@v4
+
+      - name: Подготовить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Скачать handler.json из API
+        run: node scripts/fetch-data.mjs
+
+      - name: Закоммитить изменения
+        run: |
+          if [ -z "$(git status --porcelain -- handler.json)" ]; then
+            echo "handler.json не изменился — коммит не нужен."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add handler.json
+          git commit -m "data: обновить handler.json из API"
+          git push

@@ -41,15 +41,19 @@ function proxyUrl() {
 /** Порядок попыток: сначала тот маршрут, который уже срабатывал. */
 function buildRoutes() {
   const list = [];
-
-  if (location.protocol !== 'file:') {
-    list.push({ id: 'origin', label: 'прокси на локальном сервере', url: `api/handler.php?${API_QUERY}` });
-  }
-
+  const http = location.protocol === 'http:' || location.protocol === 'https:';
   const proxy = proxyUrl();
-  if (proxy) list.push({ id: 'proxy', label: `локальный прокси (порт ${API.proxyPort})`, url: proxy });
+  const direct = { id: 'direct', label: 'напрямую', url: API_URL };
+  const snapshot = { id: 'snapshot', label: 'снимок handler.json (обновляет GitHub Actions)', url: 'handler.json' };
+  // на самом blockade3d.com прямой запрос и есть самый свежий источник
+  const preferDirect = Boolean(proxy) || location.hostname === API.host;
 
-  list.push({ id: 'direct', label: 'напрямую', url: API_URL });
+  if (http) list.push({ id: 'origin', label: 'прокси на локальном сервере', url: `api/handler.php?${API_QUERY}` });
+  if (proxy) list.push({ id: 'proxy', label: `локальный прокси (порт ${API.proxyPort})`, url: proxy });
+  if (preferDirect) list.push(direct);
+  // на https-хостингах (GitHub Pages) прямой запрос блокирует CORS — берём готовый снимок
+  if (http) list.push(snapshot);
+  if (!preferDirect) list.push(direct);
 
   let remembered = '';
   try {
@@ -57,7 +61,7 @@ function buildRoutes() {
   } catch {
     /* приватный режим — просто не запоминаем */
   }
-  if (!remembered) return list;
+  if (!remembered || remembered === 'snapshot') return list;
   return [...list.filter((r) => r.id === remembered), ...list.filter((r) => r.id !== remembered)];
 }
 
@@ -98,7 +102,7 @@ function describeError(err, route) {
 function failureMessage(errors) {
   const how =
     location.protocol === 'https:'
-      ? 'Откройте страницу по http на локальном сервере и запустите прокси «node proxy.mjs», либо положите handler.json рядом со страницей.'
+      ? 'На https-хостинге прямой запрос к API запрещён CORS: данные обновляет GitHub Actions (.github/workflows/update-data.yml), складывая снимок в handler.json. Проверьте, что workflow включён и последний запуск успешен, либо откройте страницу по http на локальном сервере с запущенным «node proxy.mjs».'
       : 'Запустите локальный прокси: «node proxy.mjs» (или api-proxy.cmd в папке проекта) и нажмите кнопку ещё раз.';
   return (
     `Не удалось загрузить данные из API ${API.host}. ` +
@@ -117,7 +121,8 @@ export async function loadItemsFromApi() {
       const raw = await fetchRaw(route.url);
       const { items, skipped } = buildItems(raw);
       if (!items.length) throw new Error('в ответе нет предметов');
-      rememberRoute(route.id);
+      // снимок не запоминаем: если появится живой маршрут, лучше пробовать его первым
+      if (route.id !== 'snapshot') rememberRoute(route.id);
       return { items, skipped, route, source: `API ${API.host} · ${route.label}` };
     } catch (err) {
       errors.push(`${route.label}: ${describeError(err, route)}`);

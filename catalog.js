@@ -85,10 +85,15 @@ el.loadApi.addEventListener('click', async () => {
   setApiBusy(true);
   notify(`Запрашиваю данные из API ${API.host}…`, 'info');
   try {
-    const { items, skipped, source } = await loadItemsFromApi();
+    const { items, skipped, source, route } = await loadItemsFromApi();
     init(items, skipped, source);
     const at = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-    notify(`Готово: данные из API получены в ${at}, предметов — ${fmt(items.length)}.`, 'ok');
+    notify(
+      route.id === 'snapshot'
+        ? `Загружен снимок handler.json: ${fmt(items.length)} предметов. Свежесть снимка обеспечивает GitHub Actions (по расписанию).`
+        : `Готово: данные из API получены в ${at}, предметов — ${fmt(items.length)}.`,
+      'ok'
+    );
   } catch (err) {
     console.error('[catalog] API:', err);
     notify(err.message, 'error');
