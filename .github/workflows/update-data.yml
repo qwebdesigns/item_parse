@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: '*/30 * * * *' # каждые 30 минут (GitHub может задержать запуск)
   workflow_dispatch: # можно запустить вручную на вкладке Actions
+  push: # прогон при изменении самого скрипта или этого файла
+    paths:
+      - 'scripts/fetch-data.mjs'
+      - '.github/workflows/update-data.yml'
 
 permissions:
   contents: write
