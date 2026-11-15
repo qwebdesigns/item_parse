@@ -2,6 +2,7 @@
 import { esc, fmt, num, countBy, debounce, initials, notify, downloadCsv, download, loadItemsFromFile, loadItemsFromUrl } from './core.js';
 import { renderItemCard, showPhotoPreview, itemFilename } from './photo.js';
 import { store } from './store.js';
+import { loadItemsFromApi, API } from './api.js';
 
 const DATA_URL = 'handler.json';
 const PAGE_SIZE = 48;
@@ -29,6 +30,7 @@ const el = {
   moreAll: $('moreAll'),
   viewCards: $('viewCards'),
   viewRows: $('viewRows'),
+  loadApi: $('loadApi'),
   exportCsv: $('exportCsv'),
   exportJson: $('exportJson'),
   updated: $('updated'),
@@ -62,11 +64,48 @@ el.fileInput.addEventListener('change', async () => {
   }
 });
 
+/* ---------- загрузка из API ---------- */
+
+const apiIco = el.loadApi.querySelector('.api-ico');
+const apiSpin = el.loadApi.querySelector('.api-spin');
+const apiLabel = el.loadApi.querySelector('.api-lbl');
+const API_LABEL = apiLabel.textContent;
+
+function setApiBusy(busy) {
+  el.loadApi.classList.toggle('is-busy', busy);
+  el.loadApi.disabled = busy;
+  el.loadApi.setAttribute('aria-busy', String(busy));
+  apiIco.hidden = busy;
+  apiSpin.hidden = !busy;
+  apiLabel.textContent = busy ? 'Загружаю…' : API_LABEL;
+}
+
+el.loadApi.addEventListener('click', async () => {
+  if (el.loadApi.disabled) return;
+  setApiBusy(true);
+  notify(`Запрашиваю данные из API ${API.host}…`, 'info');
+  try {
+    const { items, skipped, source } = await loadItemsFromApi();
+    init(items, skipped, source);
+    const at = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    notify(`Готово: данные из API получены в ${at}, предметов — ${fmt(items.length)}.`, 'ok');
+  } catch (err) {
+    console.error('[catalog] API:', err);
+    notify(err.message, 'error');
+  } finally {
+    setApiBusy(false);
+  }
+});
+
 function init(items, skipped, source) {
   state.all = items;
   state.byId = new Map(items.map((i) => [i.id, i]));
   store.items = items;
   store.source = source;
+
+  // карточка в модальном окне может относиться к прежнему источнику данных
+  if (el.modal.open) el.modal.close();
+  openItemId = null;
 
   el.loader.hidden = true;
   el.updated.textContent =

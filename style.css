@@ -84,6 +84,22 @@ main { max-width: 1280px; margin: 0 auto; padding: 20px; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
 
+/* кнопка «Загрузить из API» в шапке */
+.api-btn { display: inline-flex; align-items: center; gap: 7px; }
+.api-btn.is-busy { opacity: 0.75; cursor: progress; }
+.api-btn .api-ico { font-size: 16px; line-height: 1; font-weight: 700; }
+.api-spin {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(17, 17, 17, 0.25);
+  border-top-color: #111;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .status {
   padding: 12px 14px;
   margin-bottom: 16px;
@@ -92,6 +108,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 20px; }
   background: var(--panel);
 }
 .status.warn { border-color: var(--warn); }
+.status.ok { border-color: var(--accent2); }
 .status.error { border-color: var(--err); color: #ffb3b0; }
 
 .loader {
